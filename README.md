@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by danieldsc123, jandeson.*
+*This project has been created as part of the 42 curriculum by danda-si, jandeson*
 
 # A-Maze-ing
 

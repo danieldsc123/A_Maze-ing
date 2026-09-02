@@ -24,8 +24,7 @@ lint-strict:
 	mypy . --strict
 
 test:
-	pytest
+	$(PYTHON) -m pytest
 
 build:
 	$(PYTHON) -m build
-

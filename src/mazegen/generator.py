@@ -1,6 +1,5 @@
 """Reusable maze-generation boundary owned by the core domain."""
 
-from mazegen.errors import GenerationError
 from mazegen.models import Maze, MazeConfig
 
 
@@ -17,9 +16,5 @@ class MazeGenerator:
         self.config = config
 
     def generate(self) -> Maze:
-        """Generate and return a maze.
-
-        Raises:
-            GenerationError: Until a generation algorithm is integrated.
-        """
-        raise GenerationError("Maze generation is not implemented yet")
+        """Create and return the initial fully walled maze."""
+        return Maze.fully_walled(self.config)

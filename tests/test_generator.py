@@ -28,3 +28,27 @@ def test_generate_returns_fully_walled_grid() -> None:
         for row in maze.cells
         for cell in row
     )
+
+
+def test_unvisited_neighbors_excludes_visited_and_outside_cells() -> None:
+    """Return only valid neighbouring cells that were not visited."""
+    config = MazeConfig(
+        width=3,
+        height=3,
+        entry=Coordinate(0, 0),
+        exit=Coordinate(2, 2),
+        output_file=Path("maze.txt"),
+        seed=42,
+    )
+    generator = MazeGenerator(config)
+    visited = {Coordinate(0, 0)}
+
+    neighbors = generator._unvisited_neighbors(
+        Coordinate(1, 0),
+        visited,
+    )
+
+    assert set(neighbors) == {
+        (Coordinate(2, 0), Wall.EAST),
+        (Coordinate(1, 1), Wall.SOUTH),
+    }

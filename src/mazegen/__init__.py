@@ -1,7 +1,14 @@
 """Reusable maze-generation package."""
 
 from mazegen.generator import MazeGenerator
-from mazegen.models import Coordinate, Maze, MazeConfig
+from mazegen.models import Cell, Coordinate, Maze, MazeConfig, Wall
 
-__all__ = ["Coordinate", "Maze", "MazeConfig", "MazeGenerator"]
+__all__ = [
+    "Cell",
+    "Coordinate",
+    "Maze",
+    "MazeConfig",
+    "MazeGenerator",
+    "Wall",
+]
 __version__ = "0.1.0"

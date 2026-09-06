@@ -188,6 +188,53 @@ class Maze:
                     count += 1
         return count
 
+    def traversable_cells(self) -> set[Coordinate]:
+        """Return every cell that is not reserved for the closed 42 pattern."""
+        return {
+            Coordinate(x, y)
+            for y in range(self.config.height)
+            for x in range(self.config.width)
+            if Coordinate(x, y) not in self.pattern_cells
+        }
+
+    def dead_ends(self) -> set[Coordinate]:
+        """Return traversable cells with exactly one available passage."""
+        return {
+            coordinate
+            for coordinate in self.traversable_cells()
+            if len(self.passage_neighbors(coordinate)) == 1
+        }
+
+    def cycle_count(self) -> int:
+        """Return the independent-cycle count for a connected maze."""
+        vertices = len(self.traversable_cells())
+        return self.open_edge_count() - vertices + 1
+
+    def has_open_3x3_area(self) -> bool:
+        """Return whether any 3x3 group has no internal walls."""
+        for top in range(self.config.height - 2):
+            for left in range(self.config.width - 2):
+                area = {
+                    Coordinate(x, y)
+                    for y in range(top, top + 3)
+                    for x in range(left, left + 3)
+                }
+                if area & self.pattern_cells:
+                    continue
+                horizontal_open = all(
+                    not self.cell_at(Coordinate(x, y)).has_wall(Wall.EAST)
+                    for y in range(top, top + 3)
+                    for x in range(left, left + 2)
+                )
+                vertical_open = all(
+                    not self.cell_at(Coordinate(x, y)).has_wall(Wall.SOUTH)
+                    for y in range(top, top + 2)
+                    for x in range(left, left + 3)
+                )
+                if horizontal_open and vertical_open:
+                    return True
+        return False
+
     def _neighbour(
         self,
         coordinate: Coordinate,

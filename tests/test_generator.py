@@ -142,6 +142,43 @@ def test_small_maze_omits_pattern_with_console_warning() -> None:
     assert any("too small" in str(item.message) for item in warnings)
 
 
+def test_non_perfect_maze_is_a_connected_pacman_board() -> None:
+    """Create loops, open key positions and keep dead ends rare."""
+    config = _config(width=20, height=15, seed=42, perfect=False)
+
+    maze = MazeGenerator(config).generate()
+
+    assert len(_reachable_cells(maze, config.entry)) == len(
+        maze.traversable_cells()
+    )
+    assert maze.cycle_count() >= 2
+    assert len(maze.dead_ends()) <= 2
+    assert not maze.has_open_3x3_area()
+
+    required_corridors = {
+        Coordinate(0, 0),
+        Coordinate(config.width - 1, 0),
+        Coordinate(0, config.height - 1),
+        Coordinate(config.width - 1, config.height - 1),
+        Coordinate(config.width // 2, config.height // 2),
+    }
+    assert not required_corridors & maze.pattern_cells
+    assert all(
+        len(maze.passage_neighbors(coordinate)) >= 2
+        for coordinate in required_corridors
+    )
+
+
+def test_non_perfect_mode_is_reproducible() -> None:
+    """Use the configured seed for both carving and braiding."""
+    config = _config(width=20, height=15, seed=84, perfect=False)
+
+    first = MazeGenerator(config).generate()
+    second = MazeGenerator(config).generate()
+
+    assert _wall_signature(first) == _wall_signature(second)
+
+
 def _config(
     width: int = 6,
     height: int = 5,

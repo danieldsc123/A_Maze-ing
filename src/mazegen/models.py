@@ -144,6 +144,49 @@ class Maze:
                         return False
         return True
 
+    def passage_neighbors(self, coordinate: Coordinate) -> list[Coordinate]:
+        """Return cells reachable from a coordinate through open walls."""
+        cell = self.cell_at(coordinate)
+        neighbors: list[Coordinate] = []
+        for wall in CARDINAL_WALLS:
+            neighbor = self._neighbour(coordinate, wall)
+            if neighbor is not None and not cell.has_wall(wall):
+                neighbors.append(neighbor)
+        return neighbors
+
+    def solution_directions(self) -> str:
+        """Encode the stored solution as a sequence of N, E, S and W."""
+        directions: list[str] = []
+        symbols = {
+            (0, -1): "N",
+            (1, 0): "E",
+            (0, 1): "S",
+            (-1, 0): "W",
+        }
+        for current, following in zip(self.solution, self.solution[1:]):
+            delta = (following.x - current.x, following.y - current.y)
+            try:
+                directions.append(symbols[delta])
+            except KeyError as error:
+                message = "Solution contains non-adjacent cells"
+                raise ValueError(message) from error
+        return "".join(directions)
+
+    def open_edge_count(self) -> int:
+        """Count passages once by inspecting only east and south walls."""
+        count = 0
+        for y in range(self.config.height):
+            for x in range(self.config.width):
+                coordinate = Coordinate(x, y)
+                cell = self.cell_at(coordinate)
+                east_inside = x + 1 < self.config.width
+                if east_inside and not cell.has_wall(Wall.EAST):
+                    count += 1
+                south_inside = y + 1 < self.config.height
+                if south_inside and not cell.has_wall(Wall.SOUTH):
+                    count += 1
+        return count
+
     def _neighbour(
         self,
         coordinate: Coordinate,

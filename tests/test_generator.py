@@ -1,6 +1,7 @@
 """Tests for the reusable maze generator."""
 
 from pathlib import Path
+from warnings import catch_warnings, simplefilter
 
 from mazegen.errors import GenerationError
 from mazegen.generator import MazeGenerator
@@ -108,6 +109,37 @@ def test_generator_rejects_invalid_parameters() -> None:
             assert str(error)
         else:
             raise AssertionError("Expected invalid maze configuration to fail")
+
+
+def test_large_maze_contains_closed_42_pattern() -> None:
+    """Keep every visual pattern cell completely closed."""
+    config = _config(width=20, height=15, seed=42, perfect=True)
+
+    maze = MazeGenerator(config).generate()
+
+    assert maze.pattern_cells
+    assert config.entry not in maze.pattern_cells
+    assert config.exit not in maze.pattern_cells
+    assert all(
+        int(maze.cell_at(coordinate).walls) == 0xF
+        for coordinate in maze.pattern_cells
+    )
+    reachable = _reachable_cells(maze, config.entry)
+    expected = config.width * config.height - len(maze.pattern_cells)
+    assert len(reachable) == expected
+    assert maze.open_edge_count() == expected - 1
+
+
+def test_small_maze_omits_pattern_with_console_warning() -> None:
+    """Warn instead of failing when the 42 pattern cannot fit."""
+    config = _config(width=8, height=6, perfect=True)
+
+    with catch_warnings(record=True) as warnings:
+        simplefilter("always")
+        maze = MazeGenerator(config).generate()
+
+    assert not maze.pattern_cells
+    assert any("too small" in str(item.message) for item in warnings)
 
 
 def _config(

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command-line entry point for A-Maze-ing."""
+"""Ponto de entrada da linha de comando do A-Maze-ing."""
 
 from mazegen.cli import main
 

@@ -1,4 +1,4 @@
-"""Tests for the reusable maze generator."""
+"""Testes do gerador reutilizável de labirintos."""
 
 from pathlib import Path
 from warnings import catch_warnings, simplefilter
@@ -9,7 +9,7 @@ from mazegen.models import Coordinate, Maze, MazeConfig, Wall
 
 
 def test_generate_returns_grid_with_requested_dimensions() -> None:
-    """Generate a grid with the configured dimensions."""
+    """Gere um grid com as dimensões configuradas."""
     config = MazeConfig(
         width=3,
         height=2,
@@ -28,7 +28,7 @@ def test_generate_returns_grid_with_requested_dimensions() -> None:
 
 
 def test_unvisited_neighbors_excludes_visited_and_outside_cells() -> None:
-    """Return only valid neighbouring cells that were not visited."""
+    """Retorne apenas vizinhas válidas ainda não visitadas."""
     config = MazeConfig(
         width=3,
         height=3,
@@ -52,7 +52,7 @@ def test_unvisited_neighbors_excludes_visited_and_outside_cells() -> None:
 
 
 def test_perfect_maze_is_connected_and_has_no_loops() -> None:
-    """Build a spanning tree containing every cell."""
+    """Construa uma árvore geradora contendo todas as células."""
     config = _config(width=8, height=6, seed=42, perfect=True)
 
     maze = MazeGenerator(config).generate()
@@ -63,7 +63,7 @@ def test_perfect_maze_is_connected_and_has_no_loops() -> None:
 
 
 def test_same_seed_produces_same_maze() -> None:
-    """Generate identical walls from identical parameters and seed."""
+    """Gere paredes idênticas com parâmetros e seed idênticos."""
     config = _config(width=8, height=6, seed=123, perfect=True)
 
     first = MazeGenerator(config).generate()
@@ -73,7 +73,7 @@ def test_same_seed_produces_same_maze() -> None:
 
 
 def test_different_seeds_produce_different_mazes() -> None:
-    """Allow distinct seeds to select different traversal routes."""
+    """Permita que seeds diferentes escolham percursos diferentes."""
     first = MazeGenerator(_config(seed=1, perfect=True)).generate()
     second = MazeGenerator(_config(seed=2, perfect=True)).generate()
 
@@ -81,7 +81,7 @@ def test_different_seeds_produce_different_mazes() -> None:
 
 
 def test_solution_connects_entry_to_exit_through_passages() -> None:
-    """Store a valid path and expose its cardinal direction encoding."""
+    """Armazene um caminho válido e exponha suas direções cardeais."""
     config = _config(width=7, height=5, seed=42, perfect=True)
 
     maze = MazeGenerator(config).generate()
@@ -94,7 +94,7 @@ def test_solution_connects_entry_to_exit_through_passages() -> None:
 
 
 def test_generator_rejects_invalid_parameters() -> None:
-    """Reject impossible dimensions and entry/exit coordinates."""
+    """Rejeite dimensões e coordenadas de entrada ou saída impossíveis."""
     invalid_configs = (
         _config(width=0),
         _config(entry=Coordinate(-1, 0)),
@@ -112,7 +112,7 @@ def test_generator_rejects_invalid_parameters() -> None:
 
 
 def test_large_maze_contains_closed_42_pattern() -> None:
-    """Keep every visual pattern cell completely closed."""
+    """Mantenha fechadas todas as células do padrão visual."""
     config = _config(width=20, height=15, seed=42, perfect=True)
 
     maze = MazeGenerator(config).generate()
@@ -131,7 +131,7 @@ def test_large_maze_contains_closed_42_pattern() -> None:
 
 
 def test_small_maze_omits_pattern_with_console_warning() -> None:
-    """Warn instead of failing when the 42 pattern cannot fit."""
+    """Avise sem falhar quando o padrão 42 não couber."""
     config = _config(width=8, height=6, perfect=True)
 
     with catch_warnings(record=True) as warnings:
@@ -143,7 +143,7 @@ def test_small_maze_omits_pattern_with_console_warning() -> None:
 
 
 def test_non_perfect_maze_is_a_connected_pacman_board() -> None:
-    """Create loops, open key positions and keep dead ends rare."""
+    """Crie loops, abra posições principais e mantenha poucos becos."""
     config = _config(width=20, height=15, seed=42, perfect=False)
 
     maze = MazeGenerator(config).generate()
@@ -170,7 +170,7 @@ def test_non_perfect_maze_is_a_connected_pacman_board() -> None:
 
 
 def test_non_perfect_mode_is_reproducible() -> None:
-    """Use the configured seed for both carving and braiding."""
+    """Use a seed configurada para escavar e trançar o labirinto."""
     config = _config(width=20, height=15, seed=84, perfect=False)
 
     first = MazeGenerator(config).generate()
@@ -187,7 +187,7 @@ def _config(
     entry: Coordinate = Coordinate(0, 0),
     exit_coordinate: Coordinate | None = None,
 ) -> MazeConfig:
-    """Build a valid generator configuration for tests."""
+    """Construa uma configuração válida para os testes do gerador."""
     return MazeConfig(
         width=width,
         height=height,
@@ -200,7 +200,7 @@ def _config(
 
 
 def _reachable_cells(maze: Maze, start: Coordinate) -> set[Coordinate]:
-    """Return all cells reachable from a starting coordinate."""
+    """Retorne todas as células alcançáveis a partir de uma coordenada."""
     pending = [start]
     visited = {start}
     while pending:
@@ -213,5 +213,5 @@ def _reachable_cells(maze: Maze, start: Coordinate) -> set[Coordinate]:
 
 
 def _wall_signature(maze: Maze) -> tuple[tuple[int, ...], ...]:
-    """Convert maze walls into an immutable value for comparisons."""
+    """Converta paredes em um valor imutável para comparações."""
     return tuple(tuple(int(cell.walls) for cell in row) for row in maze.cells)

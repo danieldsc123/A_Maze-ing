@@ -1,4 +1,4 @@
-"""Tests for the maze data structures."""
+"""Testes das estruturas de dados do labirinto."""
 
 from pathlib import Path
 
@@ -6,7 +6,7 @@ from mazegen.models import Cell, Coordinate, Maze, MazeConfig, Wall
 
 
 def test_wall_values_use_independent_bits() -> None:
-    """Represent each wall with one independent bit."""
+    """Represente cada parede com um bit independente."""
     assert Wall.NORTH == 1
     assert Wall.EAST == 2
     assert Wall.SOUTH == 4
@@ -14,21 +14,21 @@ def test_wall_values_use_independent_bits() -> None:
 
 
 def test_all_walls_form_hexadecimal_f() -> None:
-    """Combine the four walls into the hexadecimal value F."""
+    """Combine as quatro paredes no valor hexadecimal F."""
     walls = Wall.NORTH | Wall.EAST | Wall.SOUTH | Wall.WEST
 
     assert int(walls) == 0xF
 
 
 def test_cell_starts_without_walls() -> None:
-    """Create an open cell by default."""
+    """Crie uma célula aberta por padrão."""
     cell = Cell()
 
     assert cell.walls == Wall(0)
 
 
 def test_cell_can_add_and_check_a_wall() -> None:
-    """Add a wall without affecting the other directions."""
+    """Adicione uma parede sem afetar as outras direções."""
     cell = Cell()
 
     cell.add_wall(Wall.NORTH)
@@ -38,7 +38,7 @@ def test_cell_can_add_and_check_a_wall() -> None:
 
 
 def test_cell_can_remove_a_wall() -> None:
-    """Remove one wall while preserving the remaining walls."""
+    """Remova uma parede preservando as demais."""
     cell = Cell(Wall.NORTH | Wall.EAST)
 
     cell.remove_wall(Wall.NORTH)
@@ -48,7 +48,7 @@ def test_cell_can_remove_a_wall() -> None:
 
 
 def test_maze_stores_a_grid_of_cells() -> None:
-    """Store cells using rows and columns."""
+    """Armazene células usando linhas e colunas."""
     config = MazeConfig(
         width=2,
         height=2,
@@ -70,7 +70,7 @@ def test_maze_stores_a_grid_of_cells() -> None:
 
 
 def test_fully_walled_maze_starts_with_hexadecimal_f() -> None:
-    """Initialize every cell with all walls closed."""
+    """Inicie todas as células com todas as paredes fechadas."""
     maze = Maze.fully_walled(_config())
 
     assert all(int(cell.walls) == 0xF for row in maze.cells for cell in row)
@@ -78,7 +78,7 @@ def test_fully_walled_maze_starts_with_hexadecimal_f() -> None:
 
 
 def test_remove_wall_updates_both_neighbouring_cells() -> None:
-    """Keep shared walls coherent when opening a passage."""
+    """Mantenha paredes compartilhadas coerentes ao abrir uma passagem."""
     maze = Maze.fully_walled(_config())
 
     maze.remove_wall(Coordinate(0, 0), Wall.EAST)
@@ -89,7 +89,7 @@ def test_remove_wall_updates_both_neighbouring_cells() -> None:
 
 
 def test_add_wall_updates_both_neighbouring_cells() -> None:
-    """Keep shared walls coherent when closing a passage."""
+    """Mantenha paredes compartilhadas coerentes ao fechar uma passagem."""
     maze = Maze.fully_walled(_config())
     maze.remove_wall(Coordinate(0, 0), Wall.SOUTH)
 
@@ -100,7 +100,7 @@ def test_add_wall_updates_both_neighbouring_cells() -> None:
 
 
 def test_external_border_cannot_be_removed() -> None:
-    """Keep the maze closed at its external border."""
+    """Mantenha o labirinto fechado em sua borda externa."""
     maze = Maze.fully_walled(_config())
 
     try:
@@ -112,7 +112,7 @@ def test_external_border_cannot_be_removed() -> None:
 
 
 def test_consistency_check_detects_asymmetric_shared_wall() -> None:
-    """Detect wall data changed without the maze mutation API."""
+    """Detecte paredes alteradas sem a API de mutação do labirinto."""
     maze = Maze.fully_walled(_config())
 
     maze.cell_at(Coordinate(0, 0)).remove_wall(Wall.EAST)
@@ -121,7 +121,7 @@ def test_consistency_check_detects_asymmetric_shared_wall() -> None:
 
 
 def test_consistency_check_detects_open_external_border() -> None:
-    """Detect an invalid opening at the outside of the grid."""
+    """Detecte uma abertura inválida para fora do grid."""
     maze = Maze.fully_walled(_config())
 
     maze.cell_at(Coordinate(0, 0)).remove_wall(Wall.NORTH)
@@ -130,7 +130,7 @@ def test_consistency_check_detects_open_external_border() -> None:
 
 
 def test_cell_at_rejects_coordinate_outside_grid() -> None:
-    """Reject negative and overflowing coordinates."""
+    """Rejeite coordenadas negativas ou além dos limites."""
     maze = Maze.fully_walled(_config())
 
     for coordinate in (Coordinate(-1, 0), Coordinate(2, 1)):
@@ -143,7 +143,7 @@ def test_cell_at_rejects_coordinate_outside_grid() -> None:
 
 
 def test_directional_operation_rejects_combined_wall_flags() -> None:
-    """Require one direction when changing a shared wall."""
+    """Exija uma direção ao alterar uma parede compartilhada."""
     maze = Maze.fully_walled(_config())
 
     try:
@@ -155,7 +155,7 @@ def test_directional_operation_rejects_combined_wall_flags() -> None:
 
 
 def _config() -> MazeConfig:
-    """Return a small valid configuration for model tests."""
+    """Retorne uma configuração válida para os testes dos modelos."""
     return MazeConfig(
         width=2,
         height=2,

@@ -76,6 +76,7 @@ class Maze:
     config: MazeConfig
     cells: list[list[Cell]]
     solution: list[Coordinate] = field(default_factory=list)
+    pattern_cells: set[Coordinate] = field(default_factory=set)
 
     @classmethod
     def fully_walled(cls, config: MazeConfig) -> "Maze":

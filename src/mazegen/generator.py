@@ -1,4 +1,4 @@
-"""Reusable maze-generation boundary owned by the core domain."""
+"""Fronteira reutilizável de geração pertencente ao domínio central."""
 
 from collections import deque
 from random import Random
@@ -28,19 +28,18 @@ PATTERN_MARGIN = 1
 
 
 class MazeGenerator:
-    """Generate mazes from validated configuration.
+    """Gere labirintos a partir de uma configuração validada.
 
-    The generation algorithms will be implemented on their dedicated feature
-    branches. Keeping this public contract stable lets the CLI, renderer and
-    serializer evolve independently.
+    Manter este contrato público estável permite que a CLI, a renderização e a
+    serialização evoluam de maneira independente.
     """
 
     def __init__(self, config: MazeConfig) -> None:
-        """Store the validated generation configuration."""
+        """Armazene a configuração validada da geração."""
         self.config = config
 
     def generate(self) -> Maze:
-        """Generate a connected perfect maze and its shortest solution."""
+        """Gere um labirinto conectado e sua solução mais curta."""
         self._validate_config()
         maze = Maze.fully_walled(self.config)
         maze.pattern_cells = self._build_pattern_cells()
@@ -71,6 +70,8 @@ class MazeGenerator:
         if len(visited) != expected_cells:
             raise GenerationError("Could not connect every maze cell")
 
+        if not self.config.perfect:
+            self._braid_maze(maze, random)
         maze.solution = self._shortest_path(maze)
         return maze
 
@@ -80,7 +81,7 @@ class MazeGenerator:
         visited: set[Coordinate],
         blocked: set[Coordinate] | None = None,
     ) -> list[tuple[Coordinate, Wall]]:
-        """Return valid neighbouring cells that were not visited."""
+        """Retorne células vizinhas válidas que ainda não foram visitadas."""
         unavailable = blocked or set()
         neighbors: list[tuple[Coordinate, Wall]] = []
         for wall, delta_x, delta_y in DIRECTIONS:
@@ -104,7 +105,7 @@ class MazeGenerator:
         return neighbors
 
     def _build_pattern_cells(self) -> set[Coordinate]:
-        """Place a centered 42 made of closed cells when space permits."""
+        """Posicione um 42 de células fechadas quando houver espaço."""
         pattern_height = len(PATTERN_42)
         pattern_width = len(PATTERN_42[0])
         minimum_width = pattern_width + 2 * PATTERN_MARGIN
@@ -141,6 +142,10 @@ class MazeGenerator:
             )
         )
 
+        protected = {self.config.entry, self.config.exit}
+        if not self.config.perfect:
+            protected.update(self._pacman_positions())
+
         for origin_x, origin_y in origins:
             cells = {
                 Coordinate(origin_x + x, origin_y + y)
@@ -148,9 +153,7 @@ class MazeGenerator:
                 for x, value in enumerate(row)
                 if value == "1"
             }
-            entry_available = self.config.entry not in cells
-            exit_available = self.config.exit not in cells
-            if entry_available and exit_available:
+            if not cells & protected:
                 return cells
 
         warn(
@@ -160,8 +163,87 @@ class MazeGenerator:
         )
         return set()
 
+    def _braid_maze(self, maze: Maze, random: Random) -> None:
+        """Adicione loops seguros e reduza becos sem saída no modo Pac-Man."""
+        targets = list(maze.dead_ends() | self._pacman_positions())
+        random.shuffle(targets)
+        for coordinate in targets:
+            while len(maze.passage_neighbors(coordinate)) < 2:
+                if not self._open_safe_passage(maze, coordinate, random):
+                    break
+
+        while maze.cycle_count() < 2:
+            candidates = list(maze.traversable_cells())
+            random.shuffle(candidates)
+            if not any(
+                self._open_safe_passage(maze, coordinate, random)
+                for coordinate in candidates
+            ):
+                raise GenerationError(
+                    "Maze is too small to create two safe independent loops"
+                )
+
+        missing_corridors = {
+            coordinate
+            for coordinate in self._pacman_positions()
+            if len(maze.passage_neighbors(coordinate)) < 2
+        }
+        if missing_corridors:
+            raise GenerationError("Could not keep corners and centre open")
+        if len(maze.dead_ends()) > 2:
+            message = "Could not reduce dead ends to a rare amount"
+            raise GenerationError(message)
+
+    def _open_safe_passage(
+        self,
+        maze: Maze,
+        coordinate: Coordinate,
+        random: Random,
+    ) -> bool:
+        """Abra uma parede interna aleatória sem criar uma área 3x3."""
+        candidates = self._closed_neighbor_walls(maze, coordinate)
+        random.shuffle(candidates)
+        for wall in candidates:
+            maze.remove_wall(coordinate, wall)
+            if maze.has_open_3x3_area():
+                maze.add_wall(coordinate, wall)
+                continue
+            return True
+        return False
+
+    def _closed_neighbor_walls(
+        self,
+        maze: Maze,
+        coordinate: Coordinate,
+    ) -> list[Wall]:
+        """Retorne paredes fechadas que levam a células transitáveis."""
+        cell = maze.cell_at(coordinate)
+        walls: list[Wall] = []
+        for wall, delta_x, delta_y in DIRECTIONS:
+            neighbor = Coordinate(
+                coordinate.x + delta_x,
+                coordinate.y + delta_y,
+            )
+            if (
+                self._inside_grid(neighbor)
+                and neighbor not in maze.pattern_cells
+                and cell.has_wall(wall)
+            ):
+                walls.append(wall)
+        return walls
+
+    def _pacman_positions(self) -> set[Coordinate]:
+        """Retorne os quatro cantos e o centro exigidos pelo modo."""
+        return {
+            Coordinate(0, 0),
+            Coordinate(self.config.width - 1, 0),
+            Coordinate(0, self.config.height - 1),
+            Coordinate(self.config.width - 1, self.config.height - 1),
+            Coordinate(self.config.width // 2, self.config.height // 2),
+        }
+
     def _shortest_path(self, maze: Maze) -> list[Coordinate]:
-        """Find a shortest entry-to-exit path using breadth-first search."""
+        """Encontre o menor caminho usando busca em largura."""
         entry = self.config.entry
         exit_coordinate = self.config.exit
         queue = deque([entry])
@@ -188,7 +270,7 @@ class MazeGenerator:
         return path
 
     def _validate_config(self) -> None:
-        """Reject parameters that cannot describe a usable maze."""
+        """Rejeite parâmetros que não descrevem um labirinto utilizável."""
         if self.config.width <= 0 or self.config.height <= 0:
             raise GenerationError("Maze dimensions must be positive")
         if not self._inside_grid(self.config.entry):
@@ -199,7 +281,7 @@ class MazeGenerator:
             raise GenerationError("Entry and exit must be different")
 
     def _inside_grid(self, coordinate: Coordinate) -> bool:
-        """Return whether a coordinate fits the configured dimensions."""
+        """Informe se uma coordenada cabe nas dimensões configuradas."""
         return (
             0 <= coordinate.x < self.config.width
             and 0 <= coordinate.y < self.config.height

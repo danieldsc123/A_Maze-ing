@@ -1,13 +1,13 @@
-"""Domain-specific exceptions exposed by the package."""
+"""Exceções específicas do domínio expostas pelo pacote."""
 
 
 class MazeError(Exception):
-    """Base exception for errors that can be shown safely to the user."""
+    """Exceção-base para erros que podem ser exibidos ao usuário."""
 
 
 class ConfigurationError(MazeError):
-    """Raised when a configuration file or value is invalid."""
+    """Indique que um arquivo ou valor de configuração é inválido."""
 
 
 class GenerationError(MazeError):
-    """Raised when a maze cannot be generated with the requested parameters."""
+    """Indique que o labirinto não pode ser gerado com os parâmetros."""

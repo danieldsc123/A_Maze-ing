@@ -1,4 +1,4 @@
-"""Hexadecimal output serialization boundary."""
+"""Fronteira da serialização da saída hexadecimal."""
 
 from pathlib import Path
 
@@ -6,5 +6,5 @@ from mazegen.models import Maze
 
 
 def write_maze(maze: Maze, destination: Path) -> None:
-    """Write a maze using the subject's hexadecimal wall encoding."""
+    """Escreva o labirinto usando a codificação hexadecimal do subject."""
     raise NotImplementedError("Maze serialization is not implemented yet")

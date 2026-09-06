@@ -1,4 +1,4 @@
-"""Configuration parsing and validation boundary."""
+"""Fronteira de leitura e validação da configuração."""
 
 from pathlib import Path
 
@@ -7,9 +7,9 @@ from mazegen.models import MazeConfig
 
 
 def load_config(path: Path) -> MazeConfig:
-    """Load and validate a KEY=VALUE configuration file.
+    """Carregue e valide um arquivo de configuração KEY=VALUE.
 
-    The complete parser belongs to its dedicated feature branch.
+    O parser completo pertence à sua branch de funcionalidade dedicada.
     """
     if not path.is_file():
         raise ConfigurationError(f"Configuration file not found: {path}")

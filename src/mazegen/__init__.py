@@ -1,4 +1,4 @@
-"""Reusable maze-generation package."""
+"""Pacote reutilizável de geração de labirintos."""
 
 from mazegen.generator import MazeGenerator
 from mazegen.models import Cell, Coordinate, Maze, MazeConfig, Wall

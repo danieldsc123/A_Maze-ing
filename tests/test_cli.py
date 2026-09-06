@@ -1,8 +1,8 @@
-"""Tests for the stable command-line contract."""
+"""Testes do contrato estável da linha de comando."""
 
 from mazegen.cli import main
 
 
 def test_cli_requires_exactly_one_argument() -> None:
-    """Reject invocation without a configuration path."""
+    """Rejeite a execução sem um caminho de configuração."""
     assert main([]) == 2

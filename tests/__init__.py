@@ -1,1 +1,1 @@
-"""Development-only test suite for A-Maze-ing."""
+"""Suíte de testes de desenvolvimento do A-Maze-ing."""

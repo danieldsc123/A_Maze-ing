@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 class Wall(IntFlag):
-    """Represente paredes usando os quatro bits de menor ordem."""
+    """Representa paredes usando os quatro bits de menor ordem."""
 
     NORTH = 1
     EAST = 2
@@ -31,26 +31,26 @@ OPPOSITE_WALL = {
 
 @dataclass
 class Cell:
-    """Represente uma célula do labirinto e suas paredes."""
+    """Representa uma célula do labirinto e suas paredes."""
 
     walls: Wall = Wall(0)
 
     def add_wall(self, wall: Wall) -> None:
-        """Adicione uma ou mais paredes à célula."""
+        """Adiciona uma ou mais paredes à célula."""
         self.walls |= wall
 
     def remove_wall(self, wall: Wall) -> None:
-        """Remova uma ou mais paredes da célula."""
+        """Remove uma ou mais paredes da célula."""
         self.walls &= ~wall
 
     def has_wall(self, wall: Wall) -> bool:
-        """Informe se a célula contém todas as paredes solicitadas."""
+        """Informa se a célula contém todas as paredes solicitadas."""
         return (self.walls & wall) == wall
 
 
 @dataclass(frozen=True)
 class Coordinate:
-    """Represente uma coordenada de célula iniciada em zero."""
+    """Representa uma coordenada de célula iniciada em zero."""
 
     x: int
     y: int
@@ -58,7 +58,7 @@ class Coordinate:
 
 @dataclass(frozen=True)
 class MazeConfig:
-    """Armazene as opções validadas necessárias para gerar o labirinto."""
+    """Armazena as opções validadas necessárias para gerar o labirinto."""
 
     width: int
     height: int
@@ -71,7 +71,7 @@ class MazeConfig:
 
 @dataclass
 class Maze:
-    """Exponha as paredes geradas e um caminho de solução mais curto."""
+    """Expoe as paredes geradas e um caminho de solução mais curto."""
 
     config: MazeConfig
     cells: list[list[Cell]]
@@ -80,7 +80,7 @@ class Maze:
 
     @classmethod
     def fully_walled(cls, config: MazeConfig) -> "Maze":
-        """Crie um grid cujas células começam com as quatro paredes."""
+        """Cria um grid cujas células começam com as quatro paredes."""
         all_walls = Wall.NORTH | Wall.EAST | Wall.SOUTH | Wall.WEST
         cells = [
             [Cell(all_walls) for _ in range(config.width)]
@@ -89,14 +89,14 @@ class Maze:
         return cls(config=config, cells=cells)
 
     def contains(self, coordinate: Coordinate) -> bool:
-        """Informe se uma coordenada está dentro do grid."""
+        """Informa se uma coordenada está dentro do grid."""
         return (
             0 <= coordinate.x < self.config.width
             and 0 <= coordinate.y < self.config.height
         )
 
     def cell_at(self, coordinate: Coordinate) -> Cell:
-        """Retorne a célula localizada em uma coordenada válida.
+        """Retorna a célula localizada em uma coordenada válida.
 
         Levanta:
             IndexError: Quando a coordenada está fora do labirinto.
@@ -106,7 +106,7 @@ class Maze:
         return self.cells[coordinate.y][coordinate.x]
 
     def add_wall(self, coordinate: Coordinate, wall: Wall) -> None:
-        """Adicione uma parede à célula e à vizinha, quando existir."""
+        """Adiciona uma parede à célula e à vizinha, quando existir."""
         self._require_cardinal_wall(wall)
         self.cell_at(coordinate).add_wall(wall)
         neighbour = self._neighbour(coordinate, wall)
@@ -114,7 +114,7 @@ class Maze:
             self.cell_at(neighbour).add_wall(OPPOSITE_WALL[wall])
 
     def remove_wall(self, coordinate: Coordinate, wall: Wall) -> None:
-        """Remova uma parede compartilhada sem abrir a borda externa.
+        """Remove uma parede compartilhada sem abrir a borda externa.
 
         Levanta:
             ValueError: Quando a parede solicitada aponta para fora do grid.
@@ -127,7 +127,7 @@ class Maze:
         self.cell_at(neighbour).remove_wall(OPPOSITE_WALL[wall])
 
     def has_consistent_walls(self) -> bool:
-        """Verifique as bordas externas e paredes compartilhadas."""
+        """Verifica as bordas externas e paredes compartilhadas."""
         for y in range(self.config.height):
             for x in range(self.config.width):
                 coordinate = Coordinate(x, y)
@@ -146,7 +146,7 @@ class Maze:
         return True
 
     def passage_neighbors(self, coordinate: Coordinate) -> list[Coordinate]:
-        """Retorne células alcançáveis através de paredes abertas."""
+        """Retorna células alcançáveis através de paredes abertas."""
         cell = self.cell_at(coordinate)
         neighbors: list[Coordinate] = []
         for wall in CARDINAL_WALLS:
@@ -156,7 +156,7 @@ class Maze:
         return neighbors
 
     def solution_directions(self) -> str:
-        """Codifique a solução como uma sequência de N, E, S e W."""
+        """Codifica a solução como uma sequência de N, E, S e W."""
         directions: list[str] = []
         symbols = {
             (0, -1): "N",
@@ -174,7 +174,7 @@ class Maze:
         return "".join(directions)
 
     def open_edge_count(self) -> int:
-        """Conte passagens uma vez, inspecionando apenas leste e sul."""
+        """Conta passagens uma vez, inspecionando apenas leste e sul."""
         count = 0
         for y in range(self.config.height):
             for x in range(self.config.width):
@@ -189,7 +189,7 @@ class Maze:
         return count
 
     def traversable_cells(self) -> set[Coordinate]:
-        """Retorne as células não reservadas para o padrão 42."""
+        """Retorna as células não reservadas para o padrão 42."""
         return {
             Coordinate(x, y)
             for y in range(self.config.height)
@@ -198,7 +198,7 @@ class Maze:
         }
 
     def dead_ends(self) -> set[Coordinate]:
-        """Retorne células transitáveis com exatamente uma passagem."""
+        """Retorna células transitáveis com exatamente uma passagem."""
         return {
             coordinate
             for coordinate in self.traversable_cells()
@@ -206,12 +206,12 @@ class Maze:
         }
 
     def cycle_count(self) -> int:
-        """Retorne a quantidade de ciclos independentes do labirinto."""
+        """Retorna a quantidade de ciclos independentes do labirinto."""
         vertices = len(self.traversable_cells())
         return self.open_edge_count() - vertices + 1
 
     def has_open_3x3_area(self) -> bool:
-        """Informe se algum grupo 3x3 não possui paredes internas."""
+        """Informa se algum grupo 3x3 não possui paredes internas."""
         for top in range(self.config.height - 2):
             for left in range(self.config.width - 2):
                 area = {
@@ -240,7 +240,7 @@ class Maze:
         coordinate: Coordinate,
         wall: Wall,
     ) -> Coordinate | None:
-        """Retorne a vizinha após uma parede, se estiver dentro do grid."""
+        """Retorna a vizinha após uma parede, se estiver dentro do grid."""
         delta_x, delta_y = WALL_DELTAS[wall]
         neighbour = Coordinate(
             coordinate.x + delta_x,
@@ -250,6 +250,6 @@ class Maze:
 
     @staticmethod
     def _require_cardinal_wall(wall: Wall) -> None:
-        """Rejeite paredes vazias ou combinadas em operações direcionais."""
+        """Rejeita paredes vazias ou combinadas em operações direcionais."""
         if wall not in CARDINAL_WALLS:
             raise ValueError(f"Expected one cardinal wall, received: {wall!r}")

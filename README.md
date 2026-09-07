@@ -59,9 +59,23 @@ grid. `PERFECT` accepts `True` or `False`. Blank lines and comment lines are
 ignored; unknown/duplicate keys, empty values and malformed lines are rejected.
 Relative `OUTPUT_FILE` paths are resolved from the working directory.
 
+```ini
+WIDTH=20
+HEIGHT=15
+ENTRY=0,0
+EXIT=19,14
+OUTPUT_FILE=maze.txt
+PERFECT=False
+SEED=42
+```
+
 The UTF-8 output contains one uppercase hexadecimal digit per cell, followed
 by a blank line, entry coordinates, exit coordinates and the shortest path as
 `N/E/S/W`. Every line, including the last, ends with LF.
+
+DFS was chosen for its simple stack-based implementation, linear traversal
+and direct construction of a spanning tree. The explicit stack avoids Python
+recursion limits on long corridors.
 
 Generation uses iterative randomized DFS: it visits each traversable cell once,
 creating a connected maze without cycles in perfect mode. Non-perfect mode
@@ -86,9 +100,18 @@ print(maze.solution_directions())
 `maze.cells[y][x].walls` exposes the wall bits; `maze.solution` contains the
 solution coordinates. `make build` creates distributions under `dist/`.
 
-Implementation was checked against the requirements recorded in Trello.
-Comparison with the original Subject v2.3 PDF and validation with its supplied
-`maze_analyzer.py` remain pending.
+The original Subject v2.3 was checked on 2026-09-07. Chapter V explicitly
+allows terminal ASCII rendering as an alternative to MLX. The supplied
+`maze_analyzer.py` reports PERFECT for the 20x15, seed 42 perfect output and
+Pac-Man-USABLE for the non-perfect output (27 loops, zero real dead ends).
+An independent BFS over the exported hexadecimal grid also confirmed shortest
+solutions of 149 and 43 steps respectively, closed borders and LF line endings.
+These checks cover those configurations, not every possible input.
+
+Before final submission, build and install the distributable in a clean
+virtual environment and place a `mazegen-*.whl` or `mazegen-*.tar.gz` at the
+Git repository root, as required by chapter VI. The current `make build`
+uses the standard `dist/` directory; the root artifact is still pending.
 
 ## Team and project management
 
@@ -103,6 +126,20 @@ Work follows the Trello flow Backlog -> To Do -> In Progress -> Review -> Done.
 The author implements a card; the other teammate reviews it and must be able to
 explain the result.
 
+The original plan separated Daniel's core generation from Janderson's
+configuration and interface through shared data contracts. In the work recorded
+so far, the core was integrated first; Daniel then requested implementation of
+the remaining parser, output and interface with AI assistance. Those changes
+were published as dependent branches: `feat/config-parser` -> `feat/hex-output`
+-> `feat/terminal-interface`. Peer review and final integration remain pending.
+
+The stable `MazeConfig`/`Maze` contracts allowed the adapters to be implemented
+without changing the core. An improvement for the remaining work is to check
+the original subject and analyzer earlier and keep Trello, README and Git
+status synchronized. Tools used include Git/GitHub, Trello, pytest, flake8,
+mypy, virtual environments and the supplied analyzer. The team should add its
+own final retrospective after review and delivery.
+
 ## Resources
 
 - Python documentation: https://docs.python.org/3/
@@ -110,7 +147,9 @@ explain the result.
 - mypy documentation: https://mypy.readthedocs.io/
 - flake8 documentation: https://flake8.pycqa.org/
 
-AI was used to compare the subject with the Trello plan and to scaffold the
-initial architecture. Every generated change must be reviewed, tested and
+AI assisted the initial architecture and requirements comparison, and later
+implemented the configuration parser, hexadecimal serializer, terminal renderer,
+CLI regeneration integration and their tests at Daniel's request. It also
+updated documentation, organized branches/Trello and ran validation commands. Every generated change must be reviewed, tested and
 understood by both teammates before evaluation.
 

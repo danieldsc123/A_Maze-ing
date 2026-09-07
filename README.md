@@ -45,6 +45,8 @@ In an interactive terminal, type a command and press Enter:
 - `q`: exit (EOF and Ctrl-C also close the interface).
 
 `E` marks entry, `X` exit, `#` the 42 pattern and `*` the visible solution.
+The solution forms a continuous trail through open passages. Entry, exit,
+pattern and solution have distinct colors in an interactive terminal.
 When stdin or stdout is redirected, the application prints one plain ASCII
 image and exits without requesting input. Regeneration uses a fresh seed;
 the initial generation still uses the configured seed.
@@ -98,7 +100,8 @@ print(maze.solution_directions())
 ```
 
 `maze.cells[y][x].walls` exposes the wall bits; `maze.solution` contains the
-solution coordinates. `make build` creates distributions under `dist/`.
+solution coordinates. `make build` creates `mazegen-0.1.0-py3-none-any.whl`
+at the repository root. The wheel contains `mazegen/USAGE.md` and the license.
 
 The original Subject v2.3 was checked on 2026-09-07. Chapter V explicitly
 allows terminal ASCII rendering as an alternative to MLX. The supplied
@@ -108,10 +111,14 @@ An independent BFS over the exported hexadecimal grid also confirmed shortest
 solutions of 149 and 43 steps respectively, closed borders and LF line endings.
 These checks cover those configurations, not every possible input.
 
-Before final submission, build and install the distributable in a clean
-virtual environment and place a `mazegen-*.whl` or `mazegen-*.tar.gz` at the
-Git repository root, as required by chapter VI. The current `make build`
-uses the standard `dist/` directory; the root artifact is still pending.
+Rebuild the wheel with `make build`. Install it in another virtual environment
+with `python3 -m pip install /absolute/path/to/mazegen-0.1.0-py3-none-any.whl`.
+Build isolation requires setuptools >=77, which supports the license metadata
+used here. If the campus package mirror cannot supply dependencies, use
+`PIP_INDEX_URL=https://pypi.org/simple make install` (or `make build`).
+The lint configuration excludes virtual environments and build artifacts.
+Development tests are kept during development; prepare the final submission
+without those test programs as requested in chapter III.3.
 
 ## Team and project management
 

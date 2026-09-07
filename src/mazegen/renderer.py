@@ -41,10 +41,24 @@ class TerminalRenderer:
                     elif coordinate == maze.config.exit:
                         symbol = "X"
                     canvas[top + 1][left + 2] = symbol
+        if show_solution:
+            for current, following in zip(maze.solution, maze.solution[1:]):
+                x, y = current.x * 4 + 2, current.y * 2 + 1
+                target_x = following.x * 4 + 2
+                target_y = following.y * 2 + 1
+                dx = (target_x > x) - (target_x < x)
+                dy = (target_y > y) - (target_y < y)
+                while (x, y) != (target_x, target_y):
+                    if canvas[y][x] == " ":
+                        canvas[y][x] = "*"
+                    x, y = x + dx, y + dy
         lines = ["".join(row) for row in canvas]
         if color is not None:
             escape = f"\033[{COLORS[color % len(COLORS)]}m"
-            lines = ["".join(f"{escape}{c}\033[0m" if c in "+-|" else c
+            palette = {"E": "\033[95m", "X": "\033[91m",
+                       "#": "\033[97m", "*": "\033[96m"}
+            palette.update({symbol: escape for symbol in "+-|"})
+            lines = ["".join(f"{palette[c]}{c}\033[0m" if c in palette else c
                              for c in line) for line in lines]
         return "\n".join(lines)
 

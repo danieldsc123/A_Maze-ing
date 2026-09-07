@@ -25,7 +25,7 @@ def test_render() -> None:
     renderer = TerminalRenderer()
     assert renderer.render(maze) == (
         "+---+---+---+\n| E       X |\n+---+---+---+")
-    assert "*" in renderer.render(maze, True)
+    assert "| E*******X |" in renderer.render(maze, True)
     assert "\033[36m" in renderer.render(maze, color=1)
     assert "*" not in renderer.render(maze)
 
@@ -51,3 +51,16 @@ def test_non_interactive(capsys: pytest.CaptureFixture[str]) -> None:
         TerminalRenderer().run(sample())
         read.assert_not_called()
     assert "\033" not in capsys.readouterr().out
+
+
+def test_vertical_solution_crosses_only_open_passages() -> None:
+    """Desenhe a ligação vertical sem cobrir paredes ou extremos."""
+    config = MazeConfig(1, 3, Coordinate(0, 0), Coordinate(0, 2),
+                        Path("unused"), True)
+    maze = Maze.fully_walled(config)
+    for y in range(2):
+        maze.remove_wall(Coordinate(0, y), Wall.SOUTH)
+    maze.solution = [Coordinate(0, y) for y in range(3)]
+    rows = TerminalRenderer().render(maze, True).splitlines()
+    assert rows == ["+---+", "| E |", "+ * +", "| * |",
+                    "+ * +", "| X |", "+---+"]

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -28,7 +28,11 @@ dev = [
 ]
 
 [tool.setuptools]
+include-package-data = true
 package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+mazegen = ["USAGE.md"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -38,6 +42,7 @@ pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.mypy]
+exclude = ["^\\.venv/", "^venv/", "^build/", "^dist/"]
 python_version = "3.10"
 warn_return_any = true
 warn_unused_ignores = true

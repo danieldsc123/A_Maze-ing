@@ -1,5 +1,6 @@
 """Verificação independente do formato exportado."""
 from pathlib import Path
+from collections import deque
 
 import pytest
 
@@ -39,3 +40,28 @@ def test_exported_solution(tmp_path: Path, perfect: bool) -> None:
         x, y = x + dx, y + dy
         assert 0 <= x < config.width and 0 <= y < config.height
     assert f"{x},{y}" == lines[-2]
+
+
+@pytest.mark.parametrize("perfect", [True, False])
+def test_exported_path_is_shortest(tmp_path: Path, perfect: bool) -> None:
+    """Meça distâncias diretamente no arquivo, sem usar helpers do modelo."""
+    path = tmp_path / "maze.txt"
+    config = MazeConfig(20, 15, Coordinate(0, 0), Coordinate(19, 14),
+                        path, perfect, 42)
+    write_maze(MazeGenerator(config).generate(), path)
+    rows = path.read_text().splitlines()
+    grid = [[int(value, 16) for value in row] for row in rows[:15]]
+    distances = {(0, 0): 0}
+    queue = deque([(0, 0)])
+    while queue:
+        x, y = queue.popleft()
+        for dx, dy, bit in ((0, -1, 1), (1, 0, 2),
+                            (0, 1, 4), (-1, 0, 8)):
+            if grid[y][x] & bit:
+                continue
+            neighbor = (x + dx, y + dy)
+            assert 0 <= neighbor[0] < 20 and 0 <= neighbor[1] < 15
+            if neighbor not in distances:
+                distances[neighbor] = distances[x, y] + 1
+                queue.append(neighbor)
+    assert len(rows[-1]) == distances[19, 14]
